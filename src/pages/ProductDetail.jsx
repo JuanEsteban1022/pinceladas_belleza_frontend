@@ -109,7 +109,7 @@ export default function ProductDetail() {
                             className="detalle-qty"
                         />
                         <button className="btn-add" onClick={() => addToCart(producto, cantidad)}>
-                            Agregar al carrito
+                            Agregar
                         </button>
                     </div>
                 </div>

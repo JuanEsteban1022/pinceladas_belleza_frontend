@@ -69,7 +69,7 @@ export default function ProductCard({ product, onEdit }) {
             className="cantidad-input"
           />
           <button className="btn-add" onClick={handleAdd}>
-            Agregar al carrito
+            Agregar
           </button>
           <Link to={`/producto/${product.id}`} className="btn-secondary" style={{ marginLeft: 8 }}>
             Ver más

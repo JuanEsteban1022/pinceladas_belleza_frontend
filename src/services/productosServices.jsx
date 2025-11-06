@@ -10,7 +10,7 @@ const authHeaders = () => ({
 });
 
 export const getProductos = async () => {
-    const res = await axios.get(`${API_URL}/productos`, authHeaders());
+    const res = await axios.get(`${API_URL}/productos`);
     return res.data;
 };
 
