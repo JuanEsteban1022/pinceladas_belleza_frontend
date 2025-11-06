@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import ProductCard from '../../components/ProductCard';
 import {
   getProductos,
@@ -136,6 +136,10 @@ export default function ProductosAdmin() {
   const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 
+  // Cache en memoria
+  const tokenRef = useRef(null);
+  const tokenExpiryRef = useRef(0);
+
   if (!CLIENT_ID || !API_KEY) {
     console.error('Faltan variables de entorno: VITE_GOOGLE_CLIENT_ID y/o VITE_GOOGLE_API_KEY');
   }
@@ -146,14 +150,41 @@ export default function ProductosAdmin() {
       window.gapi?.load?.('client:picker', resolve);
     });
 
+  const getCachedToken = () => {
+    const cached = JSON.parse(sessionStorage.getItem('drive_oauth_token') || 'null');
+    if (!cached) return null;
+    if (cached.expiry && cached.expiry > Date.now() + 60_000) return cached.access_token;
+    return null;
+  };
+
+  const cacheToken = (access_token, expires_in) => {
+    const expiry = Date.now() + (Number(expires_in || 0) * 1000);
+    tokenRef.current = access_token;
+    tokenExpiryRef.current = expiry;
+    sessionStorage.setItem('drive_oauth_token', JSON.stringify({ access_token, expiry }));
+  };
+
   const requestAccessToken = () =>
     new Promise((resolve) => {
+      // Si hay token válido en cache, úsalo
+      const cached = getCachedToken();
+      if (cached) {
+        tokenRef.current = cached;
+        return resolve(cached);
+      }
+
       const client = window.google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: DRIVE_SCOPE,
-        callback: (resp) => resolve(resp.access_token),
+        callback: (resp) => {
+          cacheToken(resp.access_token, resp.expires_in);
+          resolve(resp.access_token);
+        },
       });
-      client.requestAccessToken();
+      // En solicitudes posteriores usa prompt:'' para no mostrar el selector
+      client.requestAccessToken({
+        prompt: tokenRef.current || getCachedToken() ? '' : 'consent',
+      });
     });
 
   const openDrivePicker = async () => {

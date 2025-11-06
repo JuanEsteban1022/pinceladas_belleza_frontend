@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:8080/auth'; // Cambia según sea necesario
+const BASE_URL = 'https://pinceladas-belleza-backend.onrender.com/auth'; // Cambia según sea necesario
 
 export const login = async (credentials) => {
   try {
